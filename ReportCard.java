@@ -1,6 +1,3 @@
-/**
- * Generates a formatted report card for a semester.
- */
 public class ReportCard {
     public static void generate(Student s, int semester) {
         SemesterRecord sr = s.getSemester(semester);
