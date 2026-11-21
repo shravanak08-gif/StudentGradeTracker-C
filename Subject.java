@@ -1,6 +1,3 @@
-/**
- * Represents one subject in a semester with marks (0-100) and credits (>0).
- */
 public class Subject {
     private String name;
     private int marks;

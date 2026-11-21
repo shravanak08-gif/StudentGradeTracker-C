@@ -1,12 +1,5 @@
 import exceptions.*;
 import java.util.Scanner;
-
-/**
- * Menu-driven console entry point.
- * Wires StudentManager and BacklogManager together and demonstrates the fix:
- *  - Save marks -> backlog auto-created only once (no duplicates on re-save)
- *  - Re-exam clears backlog AND updates semester marks for consistent CGPA
- */
 public class Main {
     private static StudentManager studentManager = new StudentManager();
     private static BacklogManager backlogManager = new BacklogManager(studentManager);
@@ -108,8 +101,6 @@ public class Main {
                 throw new InvalidMarksException("Credits must be positive.");
 
             sr.addOrUpdateSubject(subject, marks, credits);
-
-            // Sync backlog: creates at most ONE record per (student, subject, sem)
             backlogManager.syncFromMarks(id, sem, subject, marks);
         }
 
@@ -146,8 +137,6 @@ public class Main {
         System.out.println("Re-exam recorded successfully!");
         backlogManager.displayBacklogs(id);
     }
-
-    /** Safe int reader that consumes leftover newline. */
     private static int readInt() {
         while (true) {
             try {

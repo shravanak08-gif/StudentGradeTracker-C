@@ -1,10 +1,4 @@
 import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Holds all subjects for one semester of one student.
- * Uses HashMap<subjectName, Subject> for O(1) updates.
- */
 public class SemesterRecord extends AcademicRecord {
     private HashMap<String, Subject> subjects;
 
@@ -16,7 +10,6 @@ public class SemesterRecord extends AcademicRecord {
     public HashMap<String, Subject> getSubjects() { return subjects; }
 
     public void addOrUpdateSubject(String name, int marks, int credits) {
-        // If subject exists, update marks/credits; else add new
         if (subjects.containsKey(name)) {
             Subject s = subjects.get(name);
             s.setMarks(marks);

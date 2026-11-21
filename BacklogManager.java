@@ -1,19 +1,6 @@
 import exceptions.*;
 import java.util.*;
-
-/**
- * Manages backlogs with duplicate prevention and consistency updates.
- *
- * KEY FIX: before creating a backlog on marks-save, we check whether one
- * already exists for (studentId, subject, semester). This avoids duplicate
- * entries when the admin edits and saves marks multiple times.
- *
- * CLEARING FIX: when a re-exam clears a backlog, we also update the original
- * SemesterRecord subject marks so the report card, SGPA and CGPA reflect the
- * latest result.
- */
 public class BacklogManager {
-    // student ID -> list of backlog records
     private HashMap<Integer, ArrayList<BacklogRecord>> backlogMap;
     private StudentManager studentManager;
 
@@ -21,17 +8,10 @@ public class BacklogManager {
         this.backlogMap = new HashMap<>();
         this.studentManager = studentManager;
     }
-
-    /**
-     * Called whenever marks are saved for a subject.
-     * Creates a backlog ONLY if the subject failed AND no matching backlog
-     * (same student + subject + semester) already exists.
-     */
     public void syncFromMarks(int studentId, int semester, String subjectName, int marks)
             throws InvalidBacklogException {
         if (marks >= GradeCalculator.PASS_MARK) {
-            // If student somehow had an active backlog but marks are now passing
-            // (e.g. admin edited original marks), mark it cleared automatically.
+        
             BacklogRecord existing = findBacklog(studentId, subjectName, semester);
             if (existing != null && !existing.isCleared()) {
                 existing.recordReExam(marks);
@@ -39,21 +19,14 @@ public class BacklogManager {
             return;
         }
 
-        // Marks below pass mark: ensure exactly ONE active backlog exists.
         BacklogRecord existing = findBacklog(studentId, subjectName, semester);
         if (existing != null) {
-            // Already tracked; nothing to do. This is the duplicate-prevention guard.
             return;
         }
 
         BacklogRecord record = new BacklogRecord(semester, subjectName, marks);
         backlogMap.computeIfAbsent(studentId, k -> new ArrayList<>()).add(record);
     }
-
-    /**
-     * Manual linear search across a student's backlog list
-     * to locate a specific subject in a specific semester.
-     */
     public BacklogRecord findBacklog(int studentId, String subject, int semester) {
         ArrayList<BacklogRecord> list = backlogMap.get(studentId);
         if (list == null) return null;
@@ -66,11 +39,6 @@ public class BacklogManager {
         return null;
     }
 
-    /**
-     * Records a re-exam attempt. If marks >= PASS_MARK, clears the backlog
-     * AND updates the original SemesterRecord so downstream calculations
-     * (report card, SGPA, CGPA) stay consistent.
-     */
     public void recordReExam(int studentId, String subject, int semester, int reExamMarks)
             throws InvalidBacklogException, InvalidStudentException {
         if (reExamMarks < 0 || reExamMarks > 100) {
@@ -89,7 +57,6 @@ public class BacklogManager {
 
         br.recordReExam(reExamMarks);
 
-        // Consistency fix: propagate latest marks into the semester record.
         if (br.isCleared()) {
             Student s = studentManager.findById(studentId);
             if (s != null) {
@@ -140,7 +107,6 @@ public class BacklogManager {
         System.out.println("========================================\n");
     }
 
-    /** Lists all students who currently have at least one active backlog. */
     public void listStudentsWithActiveBacklogs() {
         System.out.println("\n===== STUDENTS WITH ACTIVE BACKLOGS =====");
         boolean any = false;
